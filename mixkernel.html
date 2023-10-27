@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.450">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Payam Emami">
+
+<title>Data integration using kernel method</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="mixkernel_files/libs/clipboard/clipboard.min.js"></script>
+<script src="mixkernel_files/libs/quarto-html/quarto.js"></script>
+<script src="mixkernel_files/libs/quarto-html/popper.min.js"></script>
+<script src="mixkernel_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="mixkernel_files/libs/quarto-html/anchor.min.js"></script>
+<link href="mixkernel_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="mixkernel_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="mixkernel_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="mixkernel_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="mixkernel_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Data integration using kernel method</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Payam Emami </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="setting-up-envrionment" class="level1">
+<h1>Setting up envrionment</h1>
+<p>You will need to install a few packages to fully run this notebook. The main needed package is <code>mixKernel</code>, <code>ggplot2</code>, <code>mixOmics</code></p>
+<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-1_a0991598668f0bbd29a5a2216dbad106">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># List of packages to be installed</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"mixKernel"</span>,<span class="st">"ggplot2"</span>,<span class="st">"mixOmics"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Check and install missing packages</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>new_packages <span class="ot">&lt;-</span> packages[<span class="sc">!</span>(packages <span class="sc">%in%</span> <span class="fu">installed.packages</span>()[,<span class="st">"Package"</span>])]</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="fu">length</span>(new_packages)) <span class="fu">install.packages</span>(new_packages, <span class="at">dependencies =</span> <span class="cn">TRUE</span>, <span class="at">type =</span> <span class="st">"binary"</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mixOmics)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mixKernel)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<p>In classical data integration, we would like to use information across different modalities (eg., transcriptome, proteome and metabolome) to gain more comprehensive insights into the biological systems under study. This type of data can be used for an array of different purposes including but not limited to molecular classification, stratification of patients, outcome predictions and understanding of regulatory processes such as gene regulation and pathway analysis.</p>
+<p>In this specific context, we are going to focus on unsupervised modeling and segmentation, which are promising because each type of omics data may contribute valuable information to the overall understanding of complex biological systems. By leveraging unsupervised modeling, we can uncover hidden patterns and relationships within the data without relying on predefined labels. This is especially beneficial when dealing with omics data, where the volume and complexity can be overwhelming. Furthermore, segmentation allows us to group similar data points, making it easier to identify and analyze specific subsets of the data. Given the heterogeneous nature of omics data, integrating multiple types can provide a more comprehensive view of the underlying biological processes.</p>
+<p>In this lab we are going to learn the basics of how kernel fusion (<code>mixKernel</code>) can help us integrating multiple data views to uncover hidden but common pattern within the data. Before start using <code>mixKernel</code> we are going to learn a few background concepts to understand and appreciate how this technique works. Let’s start with what a kernel is and why we want to use it.</p>
+</section>
+<section id="what-is-a-kernel" class="level1">
+<h1>What is a Kernel</h1>
+<p>Many advanced machine learning algorithms uses the concept of a “kernel.” A kernel is a function that computes the similarity between two data points. The beauty of kernel methods is that they allow us to operate in a high-dimensional space without ever having to explicitly compute the coordinates in that space. This is often called the “kernel trick.”</p>
+<p>In a supervised setting, kernel methods, especially the popular Support Vector Machines (SVMs), use kernels to separate data points belonging to different classes. When data isn’t linearly separable in its original space kernels allow data to be implicitly mapped to a higher-dimensional space where it becomes linearly separable. After this mapping, algorithms like SVM find the best hyperplane that separates the data into distinct classes.</p>
+<p>Let’ see what i mean by that. If i give you two classes of <code>red</code> and <code>blue</code> measued on gene <span class="math inline">\(x\)</span> and gene <span class="math inline">\(y\)</span> and i ask you to draw a single line and plane that separates the two groups.</p>
+<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-2_e7531ae25e72c708ddbca2595c9ffaf5">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">3</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>n_points <span class="ot">&lt;-</span> <span class="dv">200</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">rnorm</span>(n_points, <span class="at">mean =</span> <span class="sc">-</span><span class="dv">4</span>, <span class="at">sd =</span> <span class="dv">1</span>), </span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>       <span class="fu">rnorm</span>(n_points, <span class="at">mean =</span> <span class="dv">4</span>, <span class="at">sd =</span> <span class="dv">1</span>), </span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>       <span class="fu">rnorm</span>(n_points, <span class="at">mean =</span> <span class="dv">4</span>, <span class="at">sd =</span> <span class="dv">1</span>), </span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>       <span class="fu">rnorm</span>(n_points, <span class="at">mean =</span> <span class="sc">-</span><span class="dv">4</span>, <span class="at">sd =</span> <span class="dv">1</span>))</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">rnorm</span>(n_points, <span class="at">mean =</span> <span class="sc">-</span><span class="dv">4</span>, <span class="at">sd =</span> <span class="dv">1</span>), </span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>       <span class="fu">rnorm</span>(n_points, <span class="at">mean =</span> <span class="dv">4</span>, <span class="at">sd =</span> <span class="dv">1</span>), </span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>       <span class="fu">rnorm</span>(n_points, <span class="at">mean =</span> <span class="sc">-</span><span class="dv">4</span>, <span class="at">sd =</span> <span class="dv">1</span>), </span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>       <span class="fu">rnorm</span>(n_points, <span class="at">mean =</span><span class="dv">4</span>, <span class="at">sd =</span> <span class="dv">1</span>))</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>class <span class="ot">&lt;-</span> <span class="fu">factor</span>(<span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">0</span>, <span class="at">each =</span> <span class="dv">2</span> <span class="sc">*</span> n_points), <span class="fu">rep</span>(<span class="dv">1</span>, <span class="at">each =</span> <span class="dv">2</span> <span class="sc">*</span> n_points)))</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(x, y, class)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x,y,<span class="at">col=</span><span class="fu">ifelse</span>(data<span class="sc">$</span>class <span class="sc">==</span> <span class="dv">0</span>, <span class="st">"red"</span>, <span class="st">"blue"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="mixkernel_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>As you already figured out it is not possible to draw a single line that separates the two groups. As we said, a kernel maps the data to a higher dimention so they become linearly separable. We are now going to add a new dimention (based on our own data) and plot the data:</p>
+<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-3_f711ca01afca780323836335d8665102">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="do">## add kernel</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>z <span class="ot">&lt;-</span> data<span class="sc">$</span>x <span class="sc">*</span> data<span class="sc">$</span>y</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Plotting in 3D</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Create an empty 3D plot</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>zlim <span class="ot">&lt;-</span> <span class="fu">range</span>(data<span class="sc">$</span>z)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>xlim <span class="ot">&lt;-</span> <span class="fu">range</span>(data<span class="sc">$</span>x)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>ylim <span class="ot">&lt;-</span> <span class="fu">range</span>(data<span class="sc">$</span>y)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>zmat <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="cn">NA</span>, <span class="dv">2</span>, <span class="dv">2</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>trans <span class="ot">&lt;-</span> <span class="fu">persp</span>(<span class="at">z =</span> zmat, <span class="at">x =</span> xlim, <span class="at">y =</span> ylim, <span class="at">zlim =</span> zlim, <span class="at">theta =</span> <span class="dv">100</span>, <span class="at">phi =</span> <span class="dv">0</span>, </span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>              <span class="at">axes =</span> <span class="cn">TRUE</span>, <span class="at">box =</span> <span class="cn">TRUE</span>, <span class="at">col =</span> <span class="cn">NA</span>, <span class="at">border =</span> <span class="cn">NA</span>, <span class="at">xlab =</span> <span class="st">"x"</span>, <span class="at">ylab =</span> <span class="st">"y"</span>, <span class="at">zlab =</span> <span class="st">"z"</span>)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the points with colors based on class</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(<span class="fu">trans3d</span>(data<span class="sc">$</span>x, data<span class="sc">$</span>y, data<span class="sc">$</span>z, <span class="at">pmat =</span> trans), <span class="at">col =</span> <span class="fu">ifelse</span>(data<span class="sc">$</span>class <span class="sc">==</span> <span class="dv">0</span>, <span class="st">"red"</span>, <span class="st">"blue"</span>), <span class="at">pch =</span> <span class="dv">16</span>)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the separating line</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span> (<span class="fu">trans3d</span>(<span class="dv">0</span>, <span class="at">y =</span> ylim, <span class="at">z =</span> <span class="dv">0</span>, <span class="at">pmat =</span> trans), <span class="at">col =</span> <span class="dv">3</span>,<span class="at">lwd=</span><span class="dv">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="mixkernel_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>In this 3D space, we can easily find a flat plane that separates the groups. The data has become linearly separable in the transformed space.</p>
+<p>The example above demonstrates that even simple datasets can be linearly inseparable in their original space. By mapping the data to a higher-dimensional space, we can make the data linearly separable and then apply linear classifiers, like a support vector machine (SVM) with a linear kernel, to find the optimal separating hyperplane.</p>
+<p>Here’s the interesting part: Although we map data into a higher-dimensional space to achieve linear separability, the data points often turn out to lie on a lower-dimensional subspace within that high-dimensional space.</p>
+<p>In the above example, we mapped 2D data into a 3D space using the transformation <span class="math inline">\(z=x \times y\)</span>. However, the data points actually lie on a 2D plane within that 3D space. So, even though we increased the dimensionality, the data effectively live in a lower-dimensional subspace.</p>
+<p>In unsupervised learning, kernel methods can be employed in algorithms like kernel PCA (Principal Component Analysis) and kernel k-means clustering. Similar to the supervised setting, data is mapped to a higher-dimensional space using kernels. In this new space, methods like PCA can capture maximal variance in fewer dimensions, or clustering algorithms can group data points more effectively. We are soon going to see how kernel PCA works.</p>
+<section id="more-kernels" class="level2">
+<h2 class="anchored" data-anchor-id="more-kernels">More kernels</h2>
+<p>As we said, a kernel is used to measure the similarity between the data points potentially (not necessarily) in much higher dimensions (sometime infinite). The simplest type of Kernel is linear kernel. It is just the dot product of two vectors. It works well when the data is already linearly separable.</p>
+<p><span class="math display">\[
+K(x,y)=x.y
+\]</span> If our data is sitting in a matrix of <span class="math inline">\(n*p\)</span> dimention, the kernel is simply the matrix product of the data matrix with its transpose, resulting in an <span class="math inline">\(n \times n\)</span> symmetric matrix. Each entry <span class="math inline">\(K_{ij}\)</span> in the matrix represents the similarity between the <span class="math inline">\(i^{th}\)</span> and <span class="math inline">\(j^{th}\)</span> data points in the dataset.</p>
+<p>For the linear kernel, this matrix can be computed as:</p>
+<p><span class="math display">\[
+K = XX^T
+\]</span></p>
+<p>Where <span class="math inline">\(X\)</span> is our data matrix of size <span class="math inline">\(n \times p\)</span>.</p>
+<p>The resulting kernel matrix <span class="math inline">\(K\)</span> is also known as the Gram matrix. The diagonal elements of <span class="math inline">\(K\)</span> represent the dot product of each data point with itself (which is simply the squared norm of the data point). Off-diagonal elements represent the dot product between different data points, indicating their similarity in the feature space.</p>
+<p>We have already seen in the previous example how a linear transformation can be used to make the data linearly separable. However, not all decision boundaries are that clear. Look at the following example:</p>
+<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-4_a0cbfa59a9439cc7aeef9dc41df8f06b">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulate concentric circle data</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">500</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>r1 <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>r2 <span class="ot">&lt;-</span> <span class="dv">6</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>theta <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">2</span><span class="sc">*</span>pi)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> r1<span class="sc">*</span><span class="fu">cos</span>(theta) <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.1</span>)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>y1 <span class="ot">&lt;-</span> r1<span class="sc">*</span><span class="fu">sin</span>(theta) <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.1</span>)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>theta <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">2</span><span class="sc">*</span>pi)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> r2<span class="sc">*</span><span class="fu">cos</span>(theta) <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.3</span>)</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>y2 <span class="ot">&lt;-</span> r2<span class="sc">*</span><span class="fu">sin</span>(theta) <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.3</span>)</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">c</span>(x1, x2),</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(y1, y2),</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">class =</span> <span class="fu">factor</span>(<span class="fu">rep</span>(<span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="at">each=</span>n))</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(data<span class="sc">$</span>x,data<span class="sc">$</span>y,<span class="at">col=</span><span class="fu">ifelse</span>(data<span class="sc">$</span>class <span class="sc">==</span> <span class="dv">0</span>, <span class="st">"red"</span>, <span class="st">"blue"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="mixkernel_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Obviously we cannot separate the blue group vs the red one. So like before we are going to add a linear transformation <span class="math inline">\(z\)</span></p>
+<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-5_68eb7a5626935c5efe9679dde3b9fc1f">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>z <span class="ot">&lt;-</span> data<span class="sc">$</span>x <span class="sc">*</span> data<span class="sc">$</span>y</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Create an empty 3D plot</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>zlim <span class="ot">&lt;-</span> <span class="fu">range</span>(data<span class="sc">$</span>z)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>xlim <span class="ot">&lt;-</span> <span class="fu">range</span>(data<span class="sc">$</span>x)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>ylim <span class="ot">&lt;-</span> <span class="fu">range</span>(data<span class="sc">$</span>y)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>zmat <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="cn">NA</span>, <span class="dv">2</span>, <span class="dv">2</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>))</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>trans <span class="ot">&lt;-</span> <span class="fu">persp</span>(<span class="at">z =</span> zmat, <span class="at">x =</span> xlim, <span class="at">y =</span> ylim, <span class="at">zlim =</span> zlim, <span class="at">theta =</span> <span class="dv">100</span>, <span class="at">phi =</span> <span class="dv">0</span>, </span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>              <span class="at">axes =</span> <span class="cn">TRUE</span>, <span class="at">box =</span> <span class="cn">TRUE</span>, <span class="at">col =</span> <span class="cn">NA</span>, <span class="at">border =</span> <span class="cn">NA</span>, <span class="at">xlab =</span> <span class="st">"x"</span>, <span class="at">ylab =</span> <span class="st">"y"</span>, <span class="at">zlab =</span> <span class="st">"z"</span>)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the points with colors based on class</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(<span class="fu">trans3d</span>(data<span class="sc">$</span>x, data<span class="sc">$</span>y, data<span class="sc">$</span>z, <span class="at">pmat =</span> trans), <span class="at">col =</span> <span class="fu">ifelse</span>(data<span class="sc">$</span>class <span class="sc">==</span> <span class="dv">0</span>, <span class="st">"red"</span>, <span class="st">"blue"</span>), <span class="at">pch =</span> <span class="dv">16</span>)</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>trans <span class="ot">&lt;-</span> <span class="fu">persp</span>(<span class="at">z =</span> zmat, <span class="at">x =</span> xlim, <span class="at">y =</span> ylim, <span class="at">zlim =</span> zlim, <span class="at">theta =</span> <span class="dv">100</span>, <span class="at">phi =</span> <span class="dv">100</span>, </span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>              <span class="at">axes =</span> <span class="cn">TRUE</span>, <span class="at">box =</span> <span class="cn">TRUE</span>, <span class="at">col =</span> <span class="cn">NA</span>, <span class="at">border =</span> <span class="cn">NA</span>, <span class="at">xlab =</span> <span class="st">"x"</span>, <span class="at">ylab =</span> <span class="st">"y"</span>, <span class="at">zlab =</span> <span class="st">"z"</span>)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the points with colors based on class</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(<span class="fu">trans3d</span>(data<span class="sc">$</span>x, data<span class="sc">$</span>y, data<span class="sc">$</span>z, <span class="at">pmat =</span> trans), <span class="at">col =</span> <span class="fu">ifelse</span>(data<span class="sc">$</span>class <span class="sc">==</span> <span class="dv">0</span>, <span class="st">"red"</span>, <span class="st">"blue"</span>), <span class="at">pch =</span> <span class="dv">16</span>)</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>trans <span class="ot">&lt;-</span> <span class="fu">persp</span>(<span class="at">z =</span> zmat, <span class="at">x =</span> xlim, <span class="at">y =</span> ylim, <span class="at">zlim =</span> zlim, <span class="at">theta =</span> <span class="dv">0</span>, <span class="at">phi =</span> <span class="dv">150</span>, </span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>              <span class="at">axes =</span> <span class="cn">TRUE</span>, <span class="at">box =</span> <span class="cn">TRUE</span>, <span class="at">col =</span> <span class="cn">NA</span>, <span class="at">border =</span> <span class="cn">NA</span>, <span class="at">xlab =</span> <span class="st">"x"</span>, <span class="at">ylab =</span> <span class="st">"y"</span>, <span class="at">zlab =</span> <span class="st">"z"</span>)</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the points with colors based on class</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(<span class="fu">trans3d</span>(data<span class="sc">$</span>x, data<span class="sc">$</span>y, data<span class="sc">$</span>z, <span class="at">pmat =</span> trans), <span class="at">col =</span> <span class="fu">ifelse</span>(data<span class="sc">$</span>class <span class="sc">==</span> <span class="dv">0</span>, <span class="st">"red"</span>, <span class="st">"blue"</span>), <span class="at">pch =</span> <span class="dv">16</span>)</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>trans <span class="ot">&lt;-</span> <span class="fu">persp</span>(<span class="at">z =</span> zmat, <span class="at">x =</span> xlim, <span class="at">y =</span> ylim, <span class="at">zlim =</span> zlim, <span class="at">theta =</span> <span class="dv">300</span>, <span class="at">phi =</span> <span class="dv">0</span>, </span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>              <span class="at">axes =</span> <span class="cn">TRUE</span>, <span class="at">box =</span> <span class="cn">TRUE</span>, <span class="at">col =</span> <span class="cn">NA</span>, <span class="at">border =</span> <span class="cn">NA</span>, <span class="at">xlab =</span> <span class="st">"x"</span>, <span class="at">ylab =</span> <span class="st">"y"</span>, <span class="at">zlab =</span> <span class="st">"z"</span>)</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the points with colors based on class</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(<span class="fu">trans3d</span>(data<span class="sc">$</span>x, data<span class="sc">$</span>y, data<span class="sc">$</span>z, <span class="at">pmat =</span> trans), <span class="at">col =</span> <span class="fu">ifelse</span>(data<span class="sc">$</span>class <span class="sc">==</span> <span class="dv">0</span>, <span class="st">"red"</span>, <span class="st">"blue"</span>), <span class="at">pch =</span> <span class="dv">16</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="mixkernel_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>The decision boundary is much more complex. It is not possible to find a plane to separate the two groups. We will have to use another kernel.</p>
+<p>The Radial Basis Function (RBF) or Gaussian Kernel is extremely versatile and is particularly useful when the nature of the decision boundary is not clear.</p>
+<p><span class="math display">\[K(\mathbf{x}, \mathbf{y}) = \exp\left(-\frac{\|\mathbf{x} - \mathbf{y}\|^2}{2\sigma^2}\right)\]</span></p>
+<p>The parameter <span class="math inline">\(\sigma\)</span> determines the spread or width of the decision boundary, with larger values of <span class="math inline">\(\sigma\)</span> resulting in a wider and smoother boundary.</p>
+<p>When you want to compute the RBF kernel for matrices, you’re essentially looking to compute the kernel similarity for each pair of rows (data points) between the two matrices. Let’s denote the matrices as <span class="math inline">\(\mathbf{A}\)</span> and <span class="math inline">\(\mathbf{B}\)</span>, where <span class="math inline">\(\mathbf{A}\)</span> has shape <span class="math inline">\(m \times d\)</span> and <span class="math inline">\(\mathbf{B}\)</span> has shape <span class="math inline">\(n \times d\)</span>. The resulting kernel matrix <span class="math inline">\(\mathbf{K}\)</span> will have shape <span class="math inline">\(m \times n\)</span>.</p>
+<p><span class="math display">\[\mathbf{K}_{ij} = \exp\left(-\frac{\|\mathbf{A}_i - \mathbf{B}_j\|^2}{2\sigma^2}\right)\]</span></p>
+<p>Where: <span class="math inline">\(\mathbf{A}_i\)</span> is the <span class="math inline">\(i^{th}\)</span> row of matrix <span class="math inline">\(\mathbf{A}\)</span> and <span class="math inline">\(\mathbf{B}_j\)</span> is the <span class="math inline">\(j^{th}\)</span> row of matrix <span class="math inline">\(\mathbf{B}\)</span>.</p>
+<p>Let’s see what happens if we add a variable <span class="math inline">\(z\)</span> to our data using the RBF kernel.</p>
+<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-6_3698e90d37e7a2b1992702e6f2dc7d3c">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>sigma <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>z <span class="ot">=</span><span class="fu">exp</span>(<span class="sc">-</span><span class="fu">rowSums</span>(data[,<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>]<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> sigma<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>zlim <span class="ot">&lt;-</span> <span class="fu">range</span>(data<span class="sc">$</span>z)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>trans <span class="ot">&lt;-</span> <span class="fu">persp</span>(<span class="at">z =</span> zmat, <span class="at">x =</span> xlim, <span class="at">y =</span> ylim, <span class="at">zlim =</span> zlim, <span class="at">theta =</span> <span class="dv">120</span>, <span class="at">phi =</span> <span class="sc">-</span><span class="dv">13</span>, </span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">axes =</span> <span class="cn">TRUE</span>, <span class="at">box =</span> <span class="cn">TRUE</span>, <span class="at">col =</span> <span class="cn">NA</span>, <span class="at">border =</span> <span class="cn">NA</span>, <span class="at">xlab =</span> <span class="st">"x"</span>, <span class="at">ylab =</span> <span class="st">"y"</span>, <span class="at">zlab =</span> <span class="st">"z"</span>)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(<span class="fu">trans3d</span>(data<span class="sc">$</span>x, data<span class="sc">$</span>y, data<span class="sc">$</span>z, <span class="at">pmat =</span> trans), <span class="at">col =</span> <span class="fu">ifelse</span>(data<span class="sc">$</span>class <span class="sc">==</span> <span class="dv">0</span>, <span class="st">"red"</span>, <span class="st">"blue"</span>), <span class="at">pch =</span> <span class="dv">16</span>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span> (<span class="fu">trans3d</span>(<span class="dv">0</span>, <span class="at">y =</span> ylim, <span class="at">z =</span> <span class="fu">mean</span>(<span class="fu">c</span>(<span class="fu">max</span>(<span class="fu">min</span>(data<span class="sc">$</span>z[data<span class="sc">$</span>class <span class="sc">==</span> <span class="dv">0</span>])),<span class="fu">max</span>(<span class="fu">min</span>(data<span class="sc">$</span>z[data<span class="sc">$</span>class <span class="sc">==</span> <span class="dv">1</span>])))), <span class="at">pmat =</span> trans), <span class="at">col =</span> <span class="dv">3</span>,<span class="at">lwd=</span><span class="dv">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="mixkernel_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>We can see that RBF helps us to find a linear decision boundary in the transformed space. In practice, there are many kernel functions available, each with its own set of characteristics and assumptions. The choice of the kernel, and the corresponding parameters, can significantly influence the performance of the algorithm. Selecting the right kernel often involves empirical evaluation through techniques such as cross-validation, where various kernels (and their parameters) are tested to identify the one that offers the best performance on a validation dataset. Moreover, domain knowledge can play a critical role in guiding this choice. For example, certain kernels might be more suitable for specific types of data or tasks.</p>
+<p>Now that we know a bit about kernels, it is time to talk a bit about kernel PCA. …</p>
+</section>
+</section>
+<section id="kernel-pca" class="level1">
+<h1>Kernel PCA</h1>
+<section id="pca" class="level2">
+<h2 class="anchored" data-anchor-id="pca">PCA</h2>
+<p>PCA is a special case of SVD in which basis vectors, or principal components, are the eigenvectors of the data’s covariance matrix. These principal components are orthogonal and represent the directions of maximum variance in the data. If you want to know more about PCA look at <a href="http://payamemami.com/pca_basics/" title="PCA basics">here</a>.</p>
+<p>Principal Component Analysis (PCA) might sound complex at first, but it can be understood intuitively as a method for simplifying and summarizing complex, multidimensional data.</p>
+<p>Given a dataset containing the expression levels of thousands of genes from a group of individuals. Each individual is a complex data sample characterized by the expression of all these genes. Visualizing or analyzing such high-dimensional data can be very difficult.</p>
+<p>PCA simplifies this complex, multidimensional space by identifying the “principal components” of the data, which are new axes that capture the most significant patterns in the data. These axes are combinations of the original gene expression levels that explain the maximum variance in the dataset.</p>
+<p>For example, the first principal component (PC) might represent a combination of genes that change the most across all individuals. It could capture a general trend in gene expression that separates individuals based on age or response to a treatment. The second PC (orthogonal to the first), might capture the next highest variance, showing another layer of structure in the data, and so on.</p>
+<p>Formally,PCA is derived from the right singular vectors contained in matrix <span class="math inline">\(V\)</span>. The singular values in <span class="math inline">\(\Sigma\)</span> are related to the eigenvalues of the covariance matrix of the original data, and they indicate the amount of variance captured by each principal component.</p>
+<p>In simpler terms, when we perform SVD on a data matrix <span class="math inline">\(A\)</span>, the columns of <span class="math inline">\(V\)</span> (the right singular vectors) are actually the principal components of <span class="math inline">\(A\)</span>. The singular values in <span class="math inline">\(\Sigma\)</span> tell us the importance or weight of these principal components.</p>
+<p>The SVD of a matrix <span class="math inline">\(A \in \mathbb{R}^{m \times n}\)</span> is expressed as: <span class="math display">\[
+A = U \Sigma V^T
+\]</span> where</p>
+<p>- <span class="math inline">\(U \in \mathbb{R}^{m \times m}\)</span> is the left singular matrix,</p>
+<p>- <span class="math inline">\(\Sigma \in \mathbb{R}^{m \times n}\)</span> is the diagonal matrix containing the singular values, and</p>
+<p>- <span class="math inline">\(V \in \mathbb{R}^{n \times n}\)</span> is the right singular matrix.</p>
+<p>To see this connection clearly, let’s consider the covariance matrix of <span class="math inline">\(A\)</span>, denoted as <span class="math inline">\(C\)</span>: <span class="math display">\[
+C = \frac{1}{n-1} A^T A
+\]</span></p>
+<p>When we perform eigen decomposition on <span class="math inline">\(C\)</span>, we get: <span class="math display">\[
+C = W \Lambda W^T
+\]</span> where <span class="math inline">\(W\)</span> contains the eigenvectors and <span class="math inline">\(\Lambda\)</span> is a diagonal matrix containing the eigenvalues.</p>
+<p>Now, if we look at the SVD of <span class="math inline">\(A\)</span> again: <span class="math display">\[
+A = U \Sigma V^T
+\]</span> and compute <span class="math inline">\(A^T A\)</span>, we get: <span class="math display">\[
+A^T A = V \Sigma^T U^T U \Sigma V^T = V \Sigma^2 V^T
+\]</span></p>
+<p>Comparing this with the eigen decomposition of <span class="math inline">\(C\)</span>, we observe that the right singular vectors <span class="math inline">\(V\)</span> are the eigenvectors of <span class="math inline">\(C\)</span>, and the singular values squared in <span class="math inline">\(\Sigma^2\)</span> are the eigenvalues in <span class="math inline">\(\Lambda\)</span>.</p>
+<p>There are other algorithms for doing PCA for example using power methods but almost all of them will converge to the same solution with a certain numerical accuracy.</p>
+</section>
+<section id="kernel-pca-1" class="level2">
+<h2 class="anchored" data-anchor-id="kernel-pca-1">Kernel PCA</h2>
+<p>While PCA provides a powerful approach to summarizing high-dimensional linear data, it will have problems capturing non-linear patterns. This is where we can use Kernel PCA</p>
+<p>Kernel PCA leverages the concept of kernels by applying PCA in the higher-dimensional space created by the kernel. The beauty of this method is that we never need to explicitly work in the higher-dimensional space, thanks to the kernel trick.</p>
+<p>Let’s briefly understand the mathematics of Kernel PCA:</p>
+<p>Given a centered data matrix <span class="math inline">\(X\)</span>, its covariance matrix is given by <span class="math inline">\(C = XX^T\)</span>. As we said if we apply a non-linear transformation <span class="math inline">\(\phi\)</span> to the data, the data is mapped to a higher-dimensional space. The representation of this data in the transformed space is <span class="math inline">\(\phi(X)\)</span>. In this high-dimensional feature space, the covariance becomes <span class="math inline">\(\phi(X)\phi(X)^T\)</span>. However, working directly with <span class="math inline">\(\phi\)</span> is computationally challenging.</p>
+<p>Instead, we use a kernel <span class="math inline">\(K(x, y) = \phi(x) \cdot \phi(y)\)</span> which implicitly calculates the dot product in the high-dimensional space without us having to ever compute <span class="math inline">\(\phi(x)\)</span> explicitly.</p>
+<p>When we apply PCA, we’re looking for the principal components of <span class="math inline">\(C\)</span>. In Kernel PCA, we’re looking for the principal components of the kernel matrix <span class="math inline">\(K\)</span>.</p>
+<p>Given the mapping <span class="math inline">\(\phi\)</span>, our kernel matrix is <span class="math inline">\(K_{ij} = \phi(x_i) \cdot \phi(x_j)\)</span>. After centering the kernel matrix, we find its eigenvalues and eigenvectors. The principal components in the original space correspond to these eigenvectors.</p>
+<p>We are now going to implement Kernel PCA using RBF kernel (we can use any kernel) and apply it on our circle data!</p>
+<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-7_f1732c9fc0c9be5c1f8ad057938a3d8d">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>sigma <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>kernel_matrix <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="sc">-</span>(<span class="fu">as.matrix</span>(<span class="fu">dist</span>(<span class="fu">scale</span>(data[,<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>]), <span class="at">method =</span> <span class="st">"euclidean"</span>, <span class="at">diag =</span> <span class="cn">TRUE</span>, <span class="at">upper =</span> <span class="cn">TRUE</span>))<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> (<span class="dv">2</span><span class="sc">*</span><span class="dv">2</span> <span class="sc">*</span> sigma))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Given our kernel we need one more step before doing PCA. That is centring. We have to make sure that the mean of the data in the high dimention of space is centered at zero. Without centering, the first principal component might merely reflect the mean of the data rather than the direction of maximum variance. Centering ensures that PCA captures the primary patterns in the data (e.g., its major variations) rather than being influenced by the mean.</p>
+<p>However, we don’t have the data in the higher dimention because we never calculated instead we used kernel trick to calculate similarity. In order to get a kernel repfecting the centered data, we need to do some small calculations.</p>
+<p>Assume that we have data points <span class="math inline">\(x_1, x_2, ..., x_m\)</span>. The kernel function, <span class="math inline">\(k\)</span>, implicitly maps these data points into a higher-dimensional space using a function <span class="math inline">\(\phi\)</span>: <span class="math display">\[k(x_i, x_j) = \langle \phi(x_i), \phi(x_j) \rangle\]</span> Where <span class="math inline">\(\langle . , . \rangle\)</span> denotes the dot product in the feature space. The mean of the data in that space is given by: <span class="math display">\[\mu_\phi = \frac{1}{m} \sum_{i=1}^{m} \phi(x_i)\]</span> Centering a data point involves subtracting the mean: <span class="math display">\[\phi_{centered}(x_i) = \phi(x_i) - \mu_\phi\]</span> The kernel between two centered data points <span class="math inline">\(x_i\)</span> and <span class="math inline">\(x_j\)</span> is: <span class="math display">\[k_{centered}(x_i, x_j) = \langle \phi_{centered}(x_i), \phi_{centered}(x_j) \rangle\]</span> Using the definition of centering: <span class="math display">\[k_{centered}(x_i, x_j) = \langle \phi(x_i) - \mu_\phi, \phi(x_j) - \mu_\phi \rangle\]</span> Expanding the dot product: <span class="math display">\[k_{centered}(x_i, x_j) = k(x_i, x_j) - \langle \phi(x_i), \frac{1}{m} \sum_{l=1}^{m} \phi(x_l) \rangle - \langle \frac{1}{m} \sum_{l=1}^{m} \phi(x_l), \phi(x_j) \rangle + \langle \frac{1}{m} \sum_{l=1}^{m} \phi(x_l), \frac{1}{m} \sum_{s=1}^{m} \phi(x_s) \rangle\]</span> Since our kernel provides the dot product in the feature space, we can replace all dot products with their corresponding kernel evaluations: <span class="math display">\[k_{centered}(x_i, x_j) = k(x_i, x_j) - \frac{1}{m} \sum_{l=1}^{m} k(x_i, x_l) - \frac{1}{m} \sum_{l=1}^{m} k(x_l, x_j) + \frac{1}{m^2} \sum_{l=1}^{m} \sum_{s=1}^{m} k(x_l, x_s)\]</span></p>
+<p>The above formula corresponds to the centering operation of the kernel matrix: <span class="math display">\[K' = K - 1_m K - K 1_m + 1_m K 1_m\]</span> Where <span class="math inline">\(K'\)</span> is the centered kernel matrix, <span class="math inline">\(K\)</span> is the original kernel matrix, and <span class="math inline">\(1_m\)</span> is a matrix of ones of size <span class="math inline">\(m \times m\)</span>.</p>
+<p>So let’s center our kernel:</p>
+<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-8_91ac843ba6395a1279567c15c9a4730f">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">dim</span>(kernel_matrix)[<span class="dv">1</span>]</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>kernel_matrix.centered <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">t</span>(kernel_matrix <span class="sc">-</span> <span class="fu">colSums</span>(kernel_matrix)<span class="sc">/</span>m) <span class="sc">-</span> <span class="fu">rowSums</span>(kernel_matrix)<span class="sc">/</span>m) <span class="sc">+</span> <span class="fu">sum</span>(kernel_matrix)<span class="sc">/</span>m<span class="sc">^</span><span class="dv">2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We can now proceed with doing eigen decomposition as usual:</p>
+<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-9_ce357afde710ea044173b97d2de23816">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>egens <span class="ot">&lt;-</span> <span class="fu">eigen</span>(kernel_matrix.centered, <span class="at">symmetric =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>pcscores_kernel <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">t</span>(egens<span class="sc">$</span>vectors[, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>])<span class="sc">/</span><span class="fu">sqrt</span>(egens<span class="sc">$</span>values[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We now have our scores sitting in <code>pcscores_kernel</code>. What i am going to do is to perform a standard PCA as well to compare the results.</p>
+<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-10_21674a9643a4abe04ba3c4060f44b524">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>pcscores_standard <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(data[,<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>])<span class="sc">$</span>x</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now let’s plot things and go through them:</p>
+<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-11_52c2f569cad06cc7227c87289d45c90b">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>))</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(data[,<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>],<span class="at">col=</span> <span class="fu">ifelse</span>(data<span class="sc">$</span>class <span class="sc">==</span> <span class="dv">0</span>, <span class="st">"red"</span>, <span class="st">"blue"</span>),<span class="at">main=</span><span class="st">"original data"</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(pcscores_standard[,<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>],<span class="at">col=</span> <span class="fu">ifelse</span>(data<span class="sc">$</span>class <span class="sc">==</span> <span class="dv">0</span>, <span class="st">"red"</span>, <span class="st">"blue"</span>),<span class="at">main=</span><span class="st">"standard pca"</span>,<span class="at">xlab=</span><span class="st">"pc1"</span>,<span class="at">ylab=</span><span class="st">"pc2"</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(pcscores_kernel[,<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>],<span class="at">col=</span> <span class="fu">ifelse</span>(data<span class="sc">$</span>class <span class="sc">==</span> <span class="dv">0</span>, <span class="st">"red"</span>, <span class="st">"blue"</span>),<span class="at">main=</span><span class="st">"kernel pca"</span>,<span class="at">xlab=</span><span class="st">"pc1"</span>,<span class="at">ylab=</span><span class="st">"pc2"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="mixkernel_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>When applying standard PCA to our data, the results may seem almost identical to the original data. This is because PCA attempts to find orthogonal directions (principal components) that capture the most variance in the data. Given that concentric circles have a circular variance, PCA might struggle to find meaningful directions that linearly separate the two groups (inner circle vs outer circle). Instead, PCA might just capture the spread of the data points without necessarily distinguishing between the circles.</p>
+<p>Kernel PCA, on the other hand, takes a non-linear approach. By mapping the data to a higher-dimensional space, KPCA aims to find a linear separation in that new space. Using the Radial Basis Function (RBF) kernel is particularly powerful for data like concentric circles because it essentially measures the ‘circular’ distance between data points.</p>
+<p>In a non-linear setting, the points of the blue circle are closer to each other. The biggest different in fact is between the red and blue points. That is reflected on PC1. The second PC has capture the spread of each circle more or less.</p>
+<p>In summary, while PCA struggles to find a linear separation in the original space for data like concentric circles, KPCA effectively maps the data to a higher-dimensional space where such a separation becomes possible. This showcases the power of kernel methods in tackling non-linear patterns and the importance of choosing the right kernel for the data at hand.</p>
+<p>Now that we know about kernels and KPCA, it is time to go through data integration.</p>
+</section>
+</section>
+<section id="data-integration-using-multiple-kernel-learning-mixkernel" class="level1">
+<h1>Data Integration Using Multiple kernel learning (mixKernel)</h1>
+<p>Multiple Kernel Learning (MKL) is seeks to combine multiple kernels, usually derived from different sources or based on different characteristics, into a single optimal kernel. This process aims to leverage the strengths of different kernel functions, thereby producing a more expressive combined kernel that can capture complex patterns in the data. The new kernel can then be used in any algorithm that uses kernel for its computations.</p>
+<p>A basic way for combining multiple is to calculate the weighted sum of all the kernels.</p>
+<p><span class="math display">\[K^* = \sum_{m=1}^{M} \beta_m K^m\]</span> subject to: <span class="math display">\[ \begin{cases}
+\beta_m \geq 0, \forall m = 1, …, M \\
+\sum_{m=1}^{M} \beta_m = 1
+\end{cases}\]</span> The coefficients <span class="math inline">\(\beta_m\)</span> determine the contribution of each individual kernel to the combined kernel. In other words, they assign weights to the different kernels reflecting their importance or relevance in the data integration process. Estimating these coefficients is a crucial step, and various optimization techniques have been proposed to address this problem.</p>
+<p>A simple initial choice for the coefficients is to set all <span class="math inline">\(\beta_m\)</span> values equal to <span class="math inline">\(\frac{1}{M}\)</span>. This choice, essentially, gives equal weight to all given kernels. This naive approach can serve as a starting point, but in practice, optimizing the values of <span class="math inline">\(\beta_m\)</span> based on the data and the specific problem at hand is more beneficial.</p>
+<p>The <code>mixKernel</code> algorithm presents multiple strategies for data integration via a composite kernel. Specifically, it offers three distinct methods for kernel combination: <code>STATIS-UMKL</code>, <code>full-UMKL</code>, and <code>sparse-UMKL</code>. The core objective of these methods is to effectively determine the coefficient <span class="math inline">\(\beta_m\)</span>.</p>
+<p>The <code>STATIS-UMKL</code> approach determines <span class="math inline">\(\beta_m\)</span> values to provide a unified representation of the <span class="math inline">\(M\)</span> kernels. It seeks a consensus kernel, which is the kernel that best aligns with the average positioning of observations across different data blocks. As a result, it often assigns greater weight to kernels that display redundancy within the kernel ensemble.</p>
+<p>Conversely, the two <code>UMKL</code> strategies focus on maintaining the native data topology. Their weight optimization is designed to ensure that the data’s structure in the feature space closely mirrors its original configuration. Notably, the sparse variant can assign a zero value to <span class="math inline">\(\beta_m\)</span>, essentially excluding certain data modalities. On the other hand, the full variant ensures all <span class="math inline">\(\beta_m\)</span> values remain non-zero.</p>
+<p>The <code>mixKernel</code> package also gives us the functionality to calculate kernels and also do variable selection. Let’s get start doing some data integration.</p>
+<section id="data" class="level3">
+<h3 class="anchored" data-anchor-id="data">Data</h3>
+<p>Our data has to be in a data.frame where features are in the columns and samples in the rows. For now we are going to use TCGA dataset from mixOmics.</p>
+<blockquote class="blockquote">
+<p><em>This data set is a small subset of the full data set from The Cancer Genome Atlas that can be analysed with the DIABLO framework. It contains the expression or abundance of three matching omics data sets: mRNA, miRNA and proteomics for 150 breast cancer samples (Basal, Her2, Luminal A) in the training set, and 70 samples in the test set. The test set is missing the proteomics data set.</em></p>
+</blockquote>
+<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-12_418442a6c7487ccdf5a9c03bcc28bc79">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Download the dataset</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">download.file</span>(<span class="st">"https://github.com/mixOmicsTeam/mixOmics/raw/master/data/breast.TCGA.rda"</span>, <span class="at">destfile =</span> <span class="st">"TCGA.rda"</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># load the data</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">"TCGA.rda"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>This data has already been split into a list with two elements. Training and testing. Each element itself is a list of four elements. Three elements are the actual datasets and one is the cancer subtypes.</p>
+<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-13_fa97ffd3d53a1cbebe6c0bcf1c683acc">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(breast.TCGA)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>List of 2
+ $ data.train:List of 4
+  ..$ mirna  : num [1:150, 1:184] 11.8 12.9 12.3 12 13.4 ...
+  .. ..- attr(*, "dimnames")=List of 2
+  .. .. ..$ : chr [1:150] "A0FJ" "A13E" "A0G0" "A0SX" ...
+  .. .. ..$ : chr [1:184] "hsa-let-7a-1" "hsa-let-7a-2" "hsa-let-7a-3" "hsa-let-7b" ...
+  ..$ mrna   : num [1:150, 1:200] 4.36 1.98 1.73 4.36 2.45 ...
+  .. ..- attr(*, "dimnames")=List of 2
+  .. .. ..$ : chr [1:150] "A0FJ" "A13E" "A0G0" "A0SX" ...
+  .. .. ..$ : chr [1:200] "RTN2" "NDRG2" "CCDC113" "FAM63A" ...
+  ..$ protein: num [1:150, 1:142] 0.0491 -0.08 -0.0328 -0.2053 0.0602 ...
+  .. ..- attr(*, "dimnames")=List of 2
+  .. .. ..$ : chr [1:150] "A0FJ" "A13E" "A0G0" "A0SX" ...
+  .. .. ..$ : chr [1:142] "14-3-3_epsilon" "4E-BP1" "4E-BP1_pS65" "4E-BP1_pT37" ...
+  ..$ subtype: Factor w/ 3 levels "Basal","Her2",..: 1 1 1 1 1 1 1 1 1 1 ...
+ $ data.test :List of 3
+  ..$ mirna  : num [1:70, 1:184] 12.8 13.9 12.9 12.4 13.1 ...
+  .. ..- attr(*, "dimnames")=List of 2
+  .. .. ..$ : chr [1:70] "A54N" "A2NL" "A6VY" "A3XT" ...
+  .. .. ..$ : chr [1:184] "hsa-let-7a-1" "hsa-let-7a-2" "hsa-let-7a-3" "hsa-let-7b" ...
+  ..$ mrna   : num [1:70, 1:200] 1.19 2.73 3.05 2.7 3.14 ...
+  .. ..- attr(*, "dimnames")=List of 2
+  .. .. ..$ : chr [1:70] "A54N" "A2NL" "A6VY" "A3XT" ...
+  .. .. ..$ : chr [1:200] "RTN2" "NDRG2" "CCDC113" "FAM63A" ...
+  ..$ subtype: Factor w/ 3 levels "Basal","Her2",..: 1 1 1 1 1 1 1 1 1 1 ...</code></pre>
+</div>
+</div>
+<p>Here we are going to only use the training data.</p>
+<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-14_6350b1fc9072eca1f4c2ebf4d8d0fb64">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mixKernel)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: mixOmics</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: MASS</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: lattice</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: ggplot2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Loaded mixOmics 6.24.0
+Thank you for using mixOmics!
+Tutorials: http://mixomics.org
+Bookdown vignette: https://mixomicsteam.github.io/Bookdown
+Questions, issues: Follow the prompts at http://mixomics.org/contact-us
+Cite us:  citation('mixOmics')</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: reticulate</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Any bug reports or comments? Notify us at nathalie.vialaneix@inrae.fr or https://forgemia.inra.fr/genotoul-bioinfo/mixKernel/-/issues</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mixOmics)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="co"># calculate kernels for each data</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>mirna<span class="ot">&lt;-</span>mixKernel<span class="sc">::</span><span class="fu">compute.kernel</span>(breast.TCGA<span class="sc">$</span>data.train<span class="sc">$</span>mirna)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>mrna<span class="ot">&lt;-</span>mixKernel<span class="sc">::</span><span class="fu">compute.kernel</span>(breast.TCGA<span class="sc">$</span>data.train<span class="sc">$</span>mrna)</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>protein<span class="ot">&lt;-</span>mixKernel<span class="sc">::</span><span class="fu">compute.kernel</span>(breast.TCGA<span class="sc">$</span>data.train<span class="sc">$</span>protein)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>In the code above, we computed linear kernels for each of the three datasets. <code>mixKernel</code> also gives us a tool to see the relationship between the datasets based on their kernels:</p>
+<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-15_66944398e407503e62d2c1aa3d23ca73">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cim.kernel</span>(<span class="at">mirna=</span>mirna,<span class="at">mrna=</span>mrna,<span class="at">protein=</span>protein)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="mixkernel_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Here the similarty is defined as RV-coefficient. It was originally introduced in the context of canonical correlation analysis, measures the similarity between two sets of variables or matrices. It’s essentially a multivariate generalization of the Pearson correlation coefficient.</p>
+<p>The kernel generalization of the RV-coefficient provides a measure of similarity between two datasets (or two views of the same dataset) after they have been implicitly mapped to a high-dimensional space by a kernel function.</p>
+<p>In the kernel setting, given two kernels <span class="math inline">\(K_1\)</span> and <span class="math inline">\(K_2\)</span> (symmetric, positive semi-definite matrices) corresponding to two datasets, the kernelized RV-coefficient can be defined in terms of these kernel matrices.</p>
+<p>If we denote <span class="math inline">\(K_1\)</span> and <span class="math inline">\(K_2\)</span> as the centered kernel matrices, then the kernelized RV-coefficient, <span class="math inline">\(RV_k\)</span>, can be defined as:</p>
+<p><span class="math display">\[RV_k = \frac{trace(K_1 K_2)}{||K_1||_F^2 \times ||K_2||_F^2}\]</span></p>
+<p>Where <span class="math inline">\(||K||_F\)</span> is Frobenius norm of a matrix <span class="math inline">\(K\)</span>.</p>
+<p>Here, the numerator captures the shared structure between the two kernel matrices, while the denominator normalizes the coefficient. You can interpret this similar to correlation values. Here we see that we have moderate RV between the datasets. Let’s go ahead with kernel merging:</p>
+<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-16_3783d5507d5e71b9504f19dd72ba56b8">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>merged_kernel <span class="ot">&lt;-</span> <span class="fu">combine.kernels</span>(<span class="at">mirna=</span>mirna,<span class="at">mrna=</span>mrna,<span class="at">protein=</span>protein, </span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>                               <span class="at">method =</span> <span class="st">"full-UMKL"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The <code>merged_kernel</code> now contains the merged kernel. We can do KPCA on this kernel to see the results:</p>
+<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-17_6c845f4ef899d15a0a96b42125ad5d0a">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>merged_kpca <span class="ot">&lt;-</span> <span class="fu">kernel.pca</span>(merged_kernel, <span class="at">ncomp =</span> <span class="dv">2</span>)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plotIndiv</span>(merged_kpca,<span class="at">group=</span>breast.TCGA<span class="sc">$</span>data.train<span class="sc">$</span>subtype,<span class="at">ind.names =</span> F,<span class="at">ellipse =</span> T,<span class="at">legend =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="mixkernel_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>So based on the results, <code>Basal</code> and <code>LumA</code> seems to be quite separated while <code>Her2</code> is in between. One main question to ask if this results better than what we can get with any of the single datasets.</p>
+<p>Given the pattern looks OK. We can go ahead with figuring out which variables are important for such a pattern.</p>
+</section>
+<section id="variable-selection" class="level2">
+<h2 class="anchored" data-anchor-id="variable-selection">Variable selection</h2>
+<p>When we work with kernels, we loose the original variables so we only have a similarity matrix. In order to find which variables are important we need to use an indirect approach to estimate the importance. To be more specific, when using a particular measure denoted as <span class="math inline">\(j\)</span> to compute the kernel <span class="math inline">\(K_m\)</span>, the observed values for this measure are shuffled randomly across all samples, and then the kernel is recalculated as <span class="math inline">\(\tilde{K}_{{m,j}}\)</span>. After this, with the weights derived from the original, unpermuted kernels, a new composite kernel is constructed:</p>
+<p><span class="math display">\[\tilde{K}^* = \sum_{l \neq m} \beta_l K_l + \beta_m \tilde{K}_{{m,j}}\]</span></p>
+<p>To see the impact of measure <span class="math inline">\(j\)</span> on a given Principal Component (PC) subspace, the Crone-Crosby distance is calculated for each axis, defined as:</p>
+<p><span class="math display">\[\forall k = 1, \ldots, N,\]</span></p>
+<p><span class="math display">\[D_{cc}(\alpha_k, \tilde{\alpha}_k) = \frac{1}{\sqrt{2}} ||\alpha_k - \tilde{\alpha}_k||\]</span></p>
+<p>Here, <span class="math inline">\(\alpha_k\)</span> and <span class="math inline">\(\tilde{\alpha}_k\)</span> represent the eigen vectors coming from the eigen-decomposition of <span class="math inline">\(K^*\)</span> and $^* $ respectively. We can do this using <code>kernel.pca.permute</code></p>
+<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-18_96e61505e56ab85e5ababcfaccad99da">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>pca_variables <span class="ot">&lt;-</span> <span class="fu">kernel.pca.permute</span>(merged_kpca,<span class="at">ncomp =</span> <span class="dv">1</span>,</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">mirna=</span><span class="fu">colnames</span>(mirna<span class="sc">$</span>X),<span class="at">mrna=</span><span class="fu">colnames</span>(mrna<span class="sc">$</span>X),<span class="at">protein=</span><span class="fu">colnames</span>(protein<span class="sc">$</span>X))</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plotVar.kernel.pca</span>(pca_variables, <span class="at">ndisplay =</span> <span class="dv">10</span>, <span class="at">ncol =</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="mixkernel_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>We can see that some protein data have much more impact on the PC scores. Let’s take the top one and check the score plot again:</p>
+<p>Similarly one can select the top variables from other blocks and go ahead with pathway analysis and further interpretation.</p>
+<p>In conclusion, the use of MKL in data integration is particularly beneficial when the individual data sources or features exhibit varying levels of importance or when they capture different aspects of the data. By combining these kernels, MKL can enhance the expressiveness and robustness of the learning algorithm, enabling it to uncover complex relationships in the data that might be missed by using a single kernel.</p>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
