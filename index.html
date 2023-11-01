@@ -106,18 +106,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="setting-up-envrionment" class="level1">
 <h1>Setting up envrionment</h1>
 <p>You will need to install a few packages to fully run this notebook. The main needed package is <code>mixKernel</code>, <code>ggplot2</code>, <code>mixOmics</code></p>
-<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-1_a0991598668f0bbd29a5a2216dbad106">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># List of packages to be installed</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"mixKernel"</span>,<span class="st">"ggplot2"</span>,<span class="st">"mixOmics"</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Check and install missing packages</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>new_packages <span class="ot">&lt;-</span> packages[<span class="sc">!</span>(packages <span class="sc">%in%</span> <span class="fu">installed.packages</span>()[,<span class="st">"Package"</span>])]</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="fu">length</span>(new_packages)) <span class="fu">install.packages</span>(new_packages, <span class="at">dependencies =</span> <span class="cn">TRUE</span>, <span class="at">type =</span> <span class="st">"binary"</span>)</span>
+<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-1_507c64eaa9d34540a84e3f72799f7aaa">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">requireNamespace</span>(<span class="st">"BiocManager"</span>)){</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">install.packages</span>(<span class="st">"BiocManager"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>BiocManager<span class="sc">::</span><span class="fu">install</span>(<span class="st">"phyloseq"</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># List of packages to be installed</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"mixKernel"</span>,<span class="st">"ggplot2"</span>,<span class="st">"mixOmics"</span>)</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mixOmics)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mixKernel)</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Check and install missing packages</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>new_packages <span class="ot">&lt;-</span> packages[<span class="sc">!</span>(packages <span class="sc">%in%</span> <span class="fu">installed.packages</span>()[,<span class="st">"Package"</span>])]</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="fu">length</span>(new_packages)) <span class="fu">install.packages</span>(new_packages, <span class="at">dependencies =</span> <span class="cn">TRUE</span>, <span class="at">type =</span> <span class="st">"binary"</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mixOmics)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mixKernel)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="introduction" class="level1">
@@ -429,47 +433,16 @@ A^T A = V \Sigma^T U^T U \Sigma V^T = V \Sigma^2 V^T
 </div>
 </div>
 <p>Here we are going to only use the training data.</p>
-<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-14_6350b1fc9072eca1f4c2ebf4d8d0fb64">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mixKernel)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Loading required package: mixOmics</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Loading required package: MASS</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Loading required package: lattice</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Loading required package: ggplot2</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>
-Loaded mixOmics 6.24.0
-Thank you for using mixOmics!
-Tutorials: http://mixomics.org
-Bookdown vignette: https://mixomicsteam.github.io/Bookdown
-Questions, issues: Follow the prompts at http://mixomics.org/contact-us
-Cite us:  citation('mixOmics')</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Loading required package: reticulate</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>
-Any bug reports or comments? Notify us at nathalie.vialaneix@inrae.fr or https://forgemia.inra.fr/genotoul-bioinfo/mixKernel/-/issues</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mixOmics)</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="co"># calculate kernels for each data</span></span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>mirna<span class="ot">&lt;-</span>mixKernel<span class="sc">::</span><span class="fu">compute.kernel</span>(breast.TCGA<span class="sc">$</span>data.train<span class="sc">$</span>mirna)</span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>mrna<span class="ot">&lt;-</span>mixKernel<span class="sc">::</span><span class="fu">compute.kernel</span>(breast.TCGA<span class="sc">$</span>data.train<span class="sc">$</span>mrna)</span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>protein<span class="ot">&lt;-</span>mixKernel<span class="sc">::</span><span class="fu">compute.kernel</span>(breast.TCGA<span class="sc">$</span>data.train<span class="sc">$</span>protein)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-14_2e393bba07ced38365bec70bfe8bc12e">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># calculate kernels for each data</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>mirna<span class="ot">&lt;-</span>mixKernel<span class="sc">::</span><span class="fu">compute.kernel</span>(breast.TCGA<span class="sc">$</span>data.train<span class="sc">$</span>mirna)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>mrna<span class="ot">&lt;-</span>mixKernel<span class="sc">::</span><span class="fu">compute.kernel</span>(breast.TCGA<span class="sc">$</span>data.train<span class="sc">$</span>mrna)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>protein<span class="ot">&lt;-</span>mixKernel<span class="sc">::</span><span class="fu">compute.kernel</span>(breast.TCGA<span class="sc">$</span>data.train<span class="sc">$</span>protein)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>In the code above, we computed linear kernels for each of the three datasets. <code>mixKernel</code> also gives us a tool to see the relationship between the datasets based on their kernels:</p>
 <div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-15_66944398e407503e62d2c1aa3d23ca73">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cim.kernel</span>(<span class="at">mirna=</span>mirna,<span class="at">mrna=</span>mrna,<span class="at">protein=</span>protein)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cim.kernel</span>(<span class="at">mirna=</span>mirna,<span class="at">mrna=</span>mrna,<span class="at">protein=</span>protein)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixkernel_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -482,14 +455,14 @@ Any bug reports or comments? Notify us at nathalie.vialaneix@inrae.fr or https:/
 <p>Where <span class="math inline">\(||K||_F\)</span> is Frobenius norm of a matrix <span class="math inline">\(K\)</span>.</p>
 <p>Here, the numerator captures the shared structure between the two kernel matrices, while the denominator normalizes the coefficient. You can interpret this similar to correlation values. Here we see that we have moderate RV between the datasets. Let’s go ahead with kernel merging:</p>
 <div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-16_3783d5507d5e71b9504f19dd72ba56b8">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>merged_kernel <span class="ot">&lt;-</span> <span class="fu">combine.kernels</span>(<span class="at">mirna=</span>mirna,<span class="at">mrna=</span>mrna,<span class="at">protein=</span>protein, </span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>                               <span class="at">method =</span> <span class="st">"full-UMKL"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>merged_kernel <span class="ot">&lt;-</span> <span class="fu">combine.kernels</span>(<span class="at">mirna=</span>mirna,<span class="at">mrna=</span>mrna,<span class="at">protein=</span>protein, </span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>                               <span class="at">method =</span> <span class="st">"full-UMKL"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>The <code>merged_kernel</code> now contains the merged kernel. We can do KPCA on this kernel to see the results:</p>
 <div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-17_6c845f4ef899d15a0a96b42125ad5d0a">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>merged_kpca <span class="ot">&lt;-</span> <span class="fu">kernel.pca</span>(merged_kernel, <span class="at">ncomp =</span> <span class="dv">2</span>)</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plotIndiv</span>(merged_kpca,<span class="at">group=</span>breast.TCGA<span class="sc">$</span>data.train<span class="sc">$</span>subtype,<span class="at">ind.names =</span> F,<span class="at">ellipse =</span> T,<span class="at">legend =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>merged_kpca <span class="ot">&lt;-</span> <span class="fu">kernel.pca</span>(merged_kernel, <span class="at">ncomp =</span> <span class="dv">2</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plotIndiv</span>(merged_kpca,<span class="at">group=</span>breast.TCGA<span class="sc">$</span>data.train<span class="sc">$</span>subtype,<span class="at">ind.names =</span> F,<span class="at">ellipse =</span> T,<span class="at">legend =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixkernel_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -504,21 +477,20 @@ Any bug reports or comments? Notify us at nathalie.vialaneix@inrae.fr or https:/
 <p>To see the impact of measure <span class="math inline">\(j\)</span> on a given Principal Component (PC) subspace, the Crone-Crosby distance is calculated for each axis, defined as:</p>
 <p><span class="math display">\[\forall k = 1, \ldots, N,\]</span></p>
 <p><span class="math display">\[D_{cc}(\alpha_k, \tilde{\alpha}_k) = \frac{1}{\sqrt{2}} ||\alpha_k - \tilde{\alpha}_k||\]</span></p>
-<p>Here, <span class="math inline">\(\alpha_k\)</span> and <span class="math inline">\(\tilde{\alpha}_k\)</span> represent the eigen vectors coming from the eigen-decomposition of <span class="math inline">\(K^*\)</span> and $^* $ respectively. We can do this using <code>kernel.pca.permute</code></p>
+<p>Here, <span class="math inline">\(\alpha_k\)</span> and <span class="math inline">\(\tilde{\alpha}_k\)</span> represent the eigen vectors coming from the eigen-decomposition of <span class="math inline">\(K^*\)</span> and <span class="math inline">\(\tilde{K}^*\)</span> respectively. We can do this using <code>kernel.pca.permute</code></p>
 <div class="cell" data-hash="mixkernel_cache/html/unnamed-chunk-18_96e61505e56ab85e5ababcfaccad99da">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>pca_variables <span class="ot">&lt;-</span> <span class="fu">kernel.pca.permute</span>(merged_kpca,<span class="at">ncomp =</span> <span class="dv">1</span>,</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">mirna=</span><span class="fu">colnames</span>(mirna<span class="sc">$</span>X),<span class="at">mrna=</span><span class="fu">colnames</span>(mrna<span class="sc">$</span>X),<span class="at">protein=</span><span class="fu">colnames</span>(protein<span class="sc">$</span>X))</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plotVar.kernel.pca</span>(pca_variables, <span class="at">ndisplay =</span> <span class="dv">10</span>, <span class="at">ncol =</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>pca_variables <span class="ot">&lt;-</span> <span class="fu">kernel.pca.permute</span>(merged_kpca,<span class="at">ncomp =</span> <span class="dv">1</span>,</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">mirna=</span><span class="fu">colnames</span>(mirna<span class="sc">$</span>X),<span class="at">mrna=</span><span class="fu">colnames</span>(mrna<span class="sc">$</span>X),<span class="at">protein=</span><span class="fu">colnames</span>(protein<span class="sc">$</span>X))</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plotVar.kernel.pca</span>(pca_variables, <span class="at">ndisplay =</span> <span class="dv">10</span>, <span class="at">ncol =</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="mixkernel_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>We can see that some protein data have much more impact on the PC scores. Let’s take the top one and check the score plot again:</p>
-<p>Similarly one can select the top variables from other blocks and go ahead with pathway analysis and further interpretation.</p>
-<p>In conclusion, the use of MKL in data integration is particularly beneficial when the individual data sources or features exhibit varying levels of importance or when they capture different aspects of the data. By combining these kernels, MKL can enhance the expressiveness and robustness of the learning algorithm, enabling it to uncover complex relationships in the data that might be missed by using a single kernel.</p>
-<p><strong>Can you do the same analysis on the test data?</strong> <strong>Are we getting the same imporant variables?</strong></p>
+<p>I this plot we display top 10 features (per omics) that are most important for the pattern we saw in KPCA (PC1). The variables are sorted based on Crone-Crosby distance. The larger the distance, the more important the variables are. We can see for example that some proteins have much more impact on the PC scores. One can select the top variables from other blocks and go ahead with pathway analysis and further interpretation.</p>
+<p>In conclusion, the use of MKL (Multi-Kernel Learning) in data integration is particularly beneficial when the individual data sources or features exhibit varying levels of importance or when they capture different aspects of the data. By combining these kernels, MKL can enhance the expressiveness and robustness of the learning algorithm, enabling it to uncover complex relationships in the data that might be missed by using a single kernel. Furthermore, Kernel-based methods, such as MKL, offer the flexibility of incorporating prior knowledge or desired structures, like temporal smoothness, into the analysis. This inherent adaptability allows researchers and practitioners to tailor their models to specific datasets and research questions, ensuring that the nuances and subtleties of the data are effectively captured and interpreted.</p>
+<p><strong>Can you do the same analysis on the test data?</strong> <strong>Are we getting the same important variables?</strong></p>
 </section>
 </section>
 
